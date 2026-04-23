@@ -1,0 +1,37 @@
+name: CI/CD
+on:
+    push:  
+        branches: [feature, main]
+    pull_request:
+        branches: [main]
+
+jobs:
+    app:
+        runs-on: ubuntu-22.04
+        steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-python@v4
+              with:
+                python-version: 3.12
+                cache: "pip"
+            - run: |
+                    python -m pip install --upgrade pip
+                    pip install -r requirements.txt
+                    pip install flake8 black pytest isort
+            - run: |
+                    flake8 .
+                    black --check .
+                    isort --check-only .
+            - run: pytest -q
+    docker:
+        runs-on: ubuntu-22.04
+        steps:
+            - uses: actions/checkout@v4
+            - run: docker compose up -d --build
+            - run: sleep 10
+            - run: docker ps
+            - run: curl -fsS http://localhost/health || exit 1
+            - if: failure()
+              run: docker compose logs
+            - if: always()
+              run: docker compose down -v

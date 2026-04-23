@@ -3,6 +3,7 @@ services:
     build: .
     container_name: app
     env_file:
+      - .env.just
       - .env
     depends_on:
       postgres:
