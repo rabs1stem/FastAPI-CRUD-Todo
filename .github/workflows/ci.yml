@@ -27,6 +27,19 @@ jobs:
         runs-on: ubuntu-22.04
         steps:
             - uses: actions/checkout@v4
+            - name: Create .env
+              run: |
+                    cat > .env <<EOF
+                    POSTGRES_USER=${{ vars.POSTGRES_USER }}
+                    POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
+                    POSTGRES_DB=${{ vars.POSTGRES_DB }}
+                    POSTGRES_HOST=${{ vars.POSTGRES_HOST }}
+                    POSTGRES_PORT=${{ vars.POSTGRES_PORT }}
+                    SECRET_KEY=${{ secrets.SECRET_KEY }}
+                    JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}
+                    DEBUG=false
+                    ENV=production
+                    EOF
             - run: docker compose up -d --build
             - run: sleep 10
             - run: docker ps
@@ -34,4 +47,6 @@ jobs:
             - if: failure()
               run: docker compose logs
             - if: always()
-              run: docker compose down -v
+              run: |
+                    docker compose down -v
+                     rm -f .env
